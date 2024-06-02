@@ -5,6 +5,7 @@
 Menu:                   .string  "\n\nMenu:\n1. Insere elemento na lista\n2. Remove elemento da lista indice\n3. Remove elemento da lista valor\n4. Exibe elementos da lista\n5. Exibe estatisticas da lista\n6. Finalizar programa\nEscolha uma opcao: "
 MsgExibeEstatistica:    .string  "\nExibe estatisticas da lista\n"		
 MsgExibeElementos:      .string  "\nExibe elementos da lista\n"
+MsgErroAlocacao:        .string  "\nErro: Falha na alocacao de memoria.\n"
 MsgRemoveIndice:	.string  "\nRemove elemento da lista indice\n"        
 MsgRemoveValor:  	.string	 "\nRemove elemento da lista valor\n"
 MsgPosicao: 		.string  "\nPosicao Inserida: "  
@@ -67,17 +68,26 @@ insere_inteiro:
 	add a1, zero, a0                            # Carrega em a1 o valor lido
 	add a2, zero, s0                            # Carrega inicio da lista
 	jal insere_registro
-	addi s2, s2, 1
-	add t0, zero, a7
 	
+	
+	# Verifica se houve falha na inserção
+	bge a0, zero, insere_sucesso                # Se a0 >= 0, inserção foi um sucesso
+	la  a0, MsgErroAlocacao
+	jal ra, exibe_mensagem
+	jal ra, main
+
+insere_sucesso:
+	addi s2, s2, 1
+    	add t0, zero, s2
+    
 	li a7, 4
 	la a0, MsgPosicao
 	ecall
-	
+	    
 	add a0, zero, s2
 	li a7, 1
 	ecall
-	
+	    
 	jal ra, main
 	
 insere_registro:
@@ -88,33 +98,48 @@ insere_registro:
 	li a7, 9                                     # Alocando memória
 	ecall
 	
-	add t6, zero, a0
-	sw t1, 4(t6)                                 # Adiciona valor na memória
-	sw zero, 0(t6)                               # Indica valor anterior como NULL
-	sw zero, 8(t6)                               # Indica o próximo valor como NULL
+	#add t6, zero, a0
+	#sw t1, 4(t6)                                 # Adiciona valor na memória
+#	sw zero, 0(t6)                               # Indica valor anterior como NULL
+#	sw zero, 8(t6)                               # Indica o próximo valor como NULL
 	
-	bne t0, zero, insere_registro_ordem_lista    # Se a lista não estiver vazia desvia
+#	bne t0, zero, insere_registro_ordem_lista    # Se a lista não estiver vazia desvia
+#	beq t0, zero, insere_primeiro_registro_lista
+#	ret
+	bge a0, zero, insere_registro_continue
+	li a0, -1
+	ret
+
+insere_registro_continue:
+	add t6, zero, a0
+	sw t1, 4(t6)                                # Adiciona valor na memória
+	sw zero, 0(t6)                              # Indica valor anterior como NULL
+	sw zero, 8(t6)                              # Indica o próximo valor como NULL
+	    
+	bne t0, zero, insere_registro_ordem_lista   # Se a lista não estiver vazia
 	beq t0, zero, insere_primeiro_registro_lista
 	ret
 
 insere_primeiro_registro_lista:
 	add s0, zero, t6
-	addi a7, zero, 0
+	li a0, 0				     
 	ret
 
 insere_registro_ordem_lista:
 	lw t3, 4(s0)                                 # Copia para o registrador t3 o valor do primeiro elemento da lista
 	slt t5, t1, t3                               # Se o valor a ser inserido for menor que o valor do primeiro nodo
-	addi t3, zero, 1                             # Define t3 como 1 para testar desvio
+	#addi t3, zero, 1                             # Define t3 como 1 para testar desvio
 	bne t5, zero, insere_inicio_lista            # Quando o valor ser maior que o primeiro valor, sera inserido no inicio da lista   rs1 <> rs2
 	
 	add t4, zero, s0                             # Responsável por passar pelos nodos
+	li t2, 1				     # Indice da inserção
 	j insere_ordem_loop                          # Se não for menor que o primeiro sera inserido no meio ou final da lista 
 		
 insere_inicio_lista:
 	sw t6, 0(s0)                                 # Próximo valor do novo nodo sera o inicio da lista
 	sw s0, 8(t6)                                 # Anterior do inicio da fila aponta par ao novo nodo
 	add s0, zero, t6                             # Ponteiro do comeco da lista aponta para novo nodo
+	li a0, 0				     # Retorna o indice de inserção
 	ret
 
 insere_ordem_loop:				     # Loop que percorre a lista ate encontrar a posicao onde sera inserido novo nodo
@@ -130,13 +155,15 @@ insere_ordem_loop:				     # Loop que percorre a lista ate encontrar a posicao o
 insere_fim_lista:
 	sw t6, 8(s1)
 	sw s1, 0(t6)
+	add a0, zero, t2			     # Retorna o indice de inserção
 	ret
 
 insere_meio_lista:
-	sw t6, 8(s1)                                # Nodo anterior recebe como próximo o novo nodo
-	sw s1, 0(t6)				    # O novo nodo recebe o nodo anterior
-	sw t4, 8(t6) 				    # O Novo nodo recebe o proximo nodo
+	sw t6, 8(s1)                                 # Nodo anterior recebe como próximo o novo nodo
+	sw s1, 0(t6)				     # O novo nodo recebe o nodo anterior
+	sw t4, 8(t6) 				     # O Novo nodo recebe o proximo nodo
 	sw t6, 0(t4)
+	add a0, zero, t2		             # Retorna o indice de inserção
 	ret
 
 remove_por_indice:
