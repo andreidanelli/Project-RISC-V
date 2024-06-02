@@ -1,20 +1,21 @@
-# - Matricula:    2021101028
-# - Nome:         Andrei Danelli
+# - Matricula:    Andrei 2021101028, Guilherme 
+# - Nome:         Andrei Danelli, Guilherme Fusieger
 
 		        .data
-Menu:                   .string  "\nMenu:\n1. Insere elemento na lista\n2. Remove elemento da lista indice\n3. Remove elemento da lista valor\n4. Exibe elementos da lista\n5. Exibe estatisticas da lista\n6. Finalizar programa\nEscolha uma opcao: "
+Menu:                   .string  "\n\nMenu:\n1. Insere elemento na lista\n2. Remove elemento da lista indice\n3. Remove elemento da lista valor\n4. Exibe elementos da lista\n5. Exibe estatisticas da lista\n6. Finalizar programa\nEscolha uma opcao: "
 MsgExibeEstatistica:    .string  "\nExibe estatisticas da lista\n"		
 MsgExibeElementos:      .string  "\nExibe elementos da lista\n"
 MsgRemoveIndice:	.string  "\nRemove elemento da lista indice\n"        
-MsgRemoveValor:  	.string	 "\nRemove elemento da lista valor\n"  
+MsgRemoveValor:  	.string	 "\nRemove elemento da lista valor\n"
+MsgPosicao: 		.string  "\nPosicao Inserida: "  
 MsgInsere:              .string  "\nDigite um valor inteiro: "
 MsgExit:		.string  "\nFinalizando programa!\n"
 OpcaoInvalida:          .string  "\nOpcao invalida. Tente novamente.\n"
 								
-			.text					
+			.text
+			add s0, zero, zero  # s0 é o registrador apontador para o início da lista	
+			add s2, zero, zero  # Contador				
 main:
-	add s0, zero, zero  # s0 é o registrador apontador para o início da lista
-	
 	la a0, Menu
 	jal ra, exibe_mensagem
 	
@@ -43,7 +44,7 @@ main:
 	jal ra, main            
 
 exibe_mensagem:
-	li a7,4            # Syscall number for write
+	li a7, 4   
 	ecall
 	ret
 	
@@ -52,6 +53,10 @@ le_entrada:
 	ecall 	
 	ret
 	
+##############################################################
+# Inicio Opção
+# Inserir registro na lista
+##############################################################
 insere_inteiro:
 	la, a0, MsgInsere
 	jal ra, exibe_mensagem
@@ -59,15 +64,80 @@ insere_inteiro:
 	li a7, 5
 	ecall
 	
-	add a1, zero, a0 # Carrega em a1 o valor lido
-	add a0, zero, 
-	jal 
+	add a1, zero, a0                            # Carrega em a1 o valor lido
+	add a2, zero, s0                            # Carrega inicio da lista
+	jal insere_registro
+	addi s2, s2, 1
+	add t0, zero, a7
 	
+	li a7, 4
+	la a0, MsgPosicao
+	ecall
 	
-	
-	
+	add a0, zero, s2
+	li a7, 1
+	ecall
 	
 	jal ra, main
+	
+insere_registro:
+	add t0, zero, a2                             # Posição do inicio da lista
+	add t1, zero, a1                             # Valor informado pelo usuário
+	
+	li a2, 12                                    # Cria um nodo, mesmo que não seja usado por algum erro
+	li a7, 9                                     # Alocando memória
+	ecall
+	
+	add t6, zero, a0
+	sw t1, 4(t6)                                 # Adiciona valor na memória
+	sw zero, 0(t6)                               # Indica valor anterior como NULL
+	sw zero, 8(t6)                               # Indica o próximo valor como NULL
+	
+	bne t0, zero, insere_registro_ordem_lista    # Se a lista não estiver vazia desvia
+	beq t0, zero, insere_primeiro_registro_lista
+	ret
+
+insere_primeiro_registro_lista:
+	add s0, zero, t6
+	addi a7, zero, 0
+	ret
+
+insere_registro_ordem_lista:
+	lw t3, 4(s0)                                 # Copia para o registrador t3 o valor do primeiro elemento da lista
+	slt t5, t1, t3                               # Se o valor a ser inserido for menor que o valor do primeiro nodo
+	addi t3, zero, 1                             # Define t3 como 1 para testar desvio
+	bne t5, zero, insere_inicio_lista            # Quando o valor ser maior que o primeiro valor, sera inserido no inicio da lista   rs1 <> rs2
+	
+	add t4, zero, s0                             # Responsável por passar pelos nodos
+	j insere_ordem_loop                          # Se não for menor que o primeiro sera inserido no meio ou final da lista 
+		
+insere_inicio_lista:
+	sw t6, 0(s0)                                 # Próximo valor do novo nodo sera o inicio da lista
+	sw s0, 8(t6)                                 # Anterior do inicio da fila aponta par ao novo nodo
+	add s0, zero, t6                             # Ponteiro do comeco da lista aponta para novo nodo
+	ret
+
+insere_ordem_loop:				     # Loop que percorre a lista ate encontrar a posicao onde sera inserido novo nodo
+	add s1, zero, t4				
+	lw t4, 8(t4)                               
+	beq t4, zero, insere_fim_lista               # Se t4 for igual a 0, insere final da lista
+	lw t3, 4(t4)
+	slt t5, t1, t3      			     # t5 recebe 1 se o valor a ser inserido é menor que o do nodo em que está a iteração
+	beq t5, zero, insere_ordem_loop              # Se não for menor, itera novamente
+	bne t5, zero, insere_meio_lista              # Se for menor, vai para a função de inserir entre 2 nodos
+	ret
+	
+insere_fim_lista:
+	sw t6, 8(s1)
+	sw s1, 0(t6)
+	ret
+
+insere_meio_lista:
+	sw t6, 8(s1)                                # Nodo anterior recebe como próximo o novo nodo
+	sw s1, 0(t6)				    # O novo nodo recebe o nodo anterior
+	sw t4, 8(t6) 				    # O Novo nodo recebe o proximo nodo
+	sw t6, 0(t4)
+	ret
 
 remove_por_indice:
 	la, a0, MsgRemoveIndice	
@@ -78,7 +148,7 @@ remove_por_valor:
 	la, a0, MsgRemoveValor
 	jal ra, exibe_mensagem
 	jal ra, main
-
+	
 imprime_lista:
 	la, a0, MsgExibeElementos
 	jal ra, exibe_mensagem
