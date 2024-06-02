@@ -24,6 +24,19 @@ inteiro e 4 bytes para armazenar o ponteiro para o próximo elemento. Por exempl
   <img src="https://github.com/andreidanelli/Project-RISC-V/assets/59027863/e4b1145f-4f50-48c1-b56c-6638aa53b316"/>
 </div>
 
+# Funcionalidades do Programa
+  -  Inserir elemento na lista
+  -  Remover elemento da lista por indice
+  -  Remover elemento da lista por valor
+  -  Mostra todos os elementos da lista
+  -  Mostra estatísticas
+      -  Quantidade de elementos presentes na lista
+      - Maior valor presente na lista
+      - Menor valor presente na lista
+      - Quantidade de inserções realizadas
+      - Quantidade de remoções realizadas
+ - Sair do programa
+
 # Instalação
 
 - Simulador RARS
