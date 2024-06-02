@@ -28,3 +28,7 @@ inteiro e 4 bytes para armazenar o ponteiro para o próximo elemento. Por exempl
 
 - Simulador RARS
   - [https://github.com/TheThirdOne/rars/releases](https://github.com/TheThirdOne/rars/releases)
+
+# Referência
+  - [Guia Prático RISC-V](https://github.com/andreidanelli/Project-RISC-V/blob/main/Documenta%C3%A7%C3%A3o/guia-pratico-risc-v-1.0.0.pdf)
+  - [RARS Environment calls](https://github.com/andreidanelli/Project-RISC-V/blob/main/Documenta%C3%A7%C3%A3o/RARS_environment_calls.pdf)
