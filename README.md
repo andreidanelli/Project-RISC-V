@@ -1,7 +1,7 @@
 # Project-RISC-V
 Programa implementado utilizando o conjunto de instruções do processador RISC-V para rodar no simulador RARS
 
-<h1 align="center">Lista Encadeada Usando instruções do processador  RISC-V</h1>
+<h1 align="center">Lista Encadeada usando instruções do processador RISC-V</h1>
 
 <div align="center">
   <img src="https://microhobby.com.br/img/riscv-logo.png"/>
