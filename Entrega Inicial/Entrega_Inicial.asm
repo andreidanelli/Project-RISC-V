@@ -4,14 +4,16 @@
 		        .data
 Menu:                   .string  "\n\nMenu:\n1. Insere elemento na lista\n2. Remove elemento da lista indice\n3. Remove elemento da lista valor\n4. Exibe elementos da lista\n5. Exibe estatisticas da lista\n6. Finalizar programa\nEscolha uma opcao: "
 MsgExibeEstatistica:    .string  "\nExibe estatisticas da lista\n"		
-MsgExibeElementos:      .string  "\nExibe elementos da lista\n"
 MsgErroAlocacao:        .string  "\nErro ao inserir elemento na lista\n"
 MsgRemoveIndice:	.string  "\nRemove elemento da lista indice\n"        
 MsgRemoveValor:  	.string	 "\nRemove elemento da lista valor\n"
+MsgListaVazia:		.string  "\n Lista esta vazia!"
 MsgPosicao1: 		.string  "\nValor "
 MsgPosicao2:		.string	 " inserido na posição "
 MsgPosicao3:		.string  " da lista\n"
 MsgInsere:              .string  "\nDigite um valor inteiro: "
+MsgEspaco:		.string	 " "
+MsgLista: 		.string  "\nElementos da Lista: "
 MsgExit:		.string  "\nFinalizando programa!\n"
 OpcaoInvalida:          .string  "\nOpcao invalida. Tente novamente.\n"
 								
@@ -34,7 +36,7 @@ main:
 	beq a0, t0, remove_por_valor  # Se for igual a 3 remove_por_valor
 	
 	li t0, 4
-	beq a0, t0, imprime_lista     # Se for igual a 4 imprime_lista
+	beq a0, t0, op_imprimir_lista # Se for igual a 4 imprime_lista
 	
 	li t0, 5
 	beq a0, t0, estatistica       # Se for igual a 5 estatistica	
@@ -173,6 +175,51 @@ insere_meio_lista:
 # Final Opção
 # Inserir registro na lista
 ##############################################################
+
+##############################################################
+# Inicio Opção
+# Imprimir lista
+##############################################################
+op_imprimir_lista:
+	add a0, zero, s0
+	jal imprime_lista
+
+exibe_lista:
+	li a7, 4
+	la a0, MsgLista
+	ecall
+	
+for_lista:
+	lw a0, 4(t0)
+	li a7, 1
+	ecall 
+	
+	la, a0, MsgEspaco
+	li, a7, 4
+	ecall
+	
+	lw t0, 8(t0)
+	bne t0, zero, for_lista
+	j main 	
+
+imprime_lista:
+	add t0, zero, a0
+	bne t0, zero, exibe_lista
+	beq t0, zero, imprime_lista_vazia
+	
+	j main
+	
+imprime_lista_vazia:
+	li a7, 4
+	la a0, MsgListaVazia
+	ecall
+	
+	j main
+
+##############################################################
+# Final Opção
+# Imprimir lista
+##############################################################
 remove_por_indice:
 	la, a0, MsgRemoveIndice	
 	jal ra, exibe_mensagem
@@ -180,11 +227,6 @@ remove_por_indice:
 
 remove_por_valor:
 	la, a0, MsgRemoveValor
-	jal ra, exibe_mensagem
-	j main
-	
-imprime_lista:
-	la, a0, MsgExibeElementos
 	jal ra, exibe_mensagem
 	j main
 	
