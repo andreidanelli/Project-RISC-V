@@ -5,10 +5,12 @@
 Menu:                   .string  "\n\nMenu:\n1. Insere elemento na lista\n2. Remove elemento da lista indice\n3. Remove elemento da lista valor\n4. Exibe elementos da lista\n5. Exibe estatisticas da lista\n6. Finalizar programa\nEscolha uma opcao: "
 MsgExibeEstatistica:    .string  "\nExibe estatisticas da lista\n"		
 MsgExibeElementos:      .string  "\nExibe elementos da lista\n"
-MsgErroAlocacao:        .string  "\nErro: Falha na alocacao de memoria.\n"
+MsgErroAlocacao:        .string  "\nErro ao inserir elemento na lista\n"
 MsgRemoveIndice:	.string  "\nRemove elemento da lista indice\n"        
 MsgRemoveValor:  	.string	 "\nRemove elemento da lista valor\n"
-MsgPosicao: 		.string  "\nPosicao Inserida: "  
+MsgPosicao1: 		.string  "\nValor "
+MsgPosicao2:		.string	 " inserido na posição "
+MsgPosicao3:		.string  " da lista\n"
 MsgInsere:              .string  "\nDigite um valor inteiro: "
 MsgExit:		.string  "\nFinalizando programa!\n"
 OpcaoInvalida:          .string  "\nOpcao invalida. Tente novamente.\n"
@@ -23,7 +25,7 @@ main:
 	jal ra, le_entrada
 	
 	li t0, 1
-	beq a0, t0, insere_inteiro    # Se for igual a 1 insere_inteiro
+	beq a0, t0, prepara_insere    # Se for igual a 1 insere_inteiro
 	
 	li t0, 2
 	beq a0, t0, remove_por_indice # Se for igual a 2 remove_por_indice
@@ -42,7 +44,7 @@ main:
 
 	la a0,  OpcaoInvalida
 	jal ra, exibe_mensagem   
-	jal ra, main            
+	j main            
 
 exibe_mensagem:
 	li a7, 4   
@@ -58,58 +60,35 @@ le_entrada:
 # Inicio Opção
 # Inserir registro na lista
 ##############################################################
-insere_inteiro:
+prepara_insere:
 	la, a0, MsgInsere
-	jal ra, exibe_mensagem
+	jal ra, exibe_mensagem	
 	
 	li a7, 5
 	ecall
 	
 	add a1, zero, a0                            # Carrega em a1 o valor lido
-	add a2, zero, s0                            # Carrega inicio da lista
-	jal insere_registro
-	
+	add a0, zero, s0                            # Carrega inicio da lista
+	jal insere_inteiro
 	
 	# Verifica se houve falha na inserção
-	bge a0, zero, insere_sucesso                # Se a0 >= 0, inserção foi um sucesso
+	bge a0, zero, exibe_mensagem_sucesso        # Se a0 >= 0, inserção foi um sucesso
 	la  a0, MsgErroAlocacao
 	jal ra, exibe_mensagem
-	jal ra, main
+	j main
 
-insere_sucesso:
-	addi s2, s2, 1
-    	add t0, zero, s2
-    
-	li a7, 4
-	la a0, MsgPosicao
-	ecall
-	    
-	add a0, zero, s2
-	li a7, 1
-	ecall
-	    
-	jal ra, main
-	
-insere_registro:
-	add t0, zero, a2                             # Posição do inicio da lista
+insere_inteiro:
 	add t1, zero, a1                             # Valor informado pelo usuário
+	add t0, zero, a0                             # Posição do inicio da lista
 	
-	li a2, 12                                    # Cria um nodo, mesmo que não seja usado por algum erro
+	li a0, 12                                    # Cria um nodo, mesmo que não seja usado por algum erro
 	li a7, 9                                     # Alocando memória
 	ecall
 	
-	#add t6, zero, a0
-	#sw t1, 4(t6)                                 # Adiciona valor na memória
-#	sw zero, 0(t6)                               # Indica valor anterior como NULL
-#	sw zero, 8(t6)                               # Indica o próximo valor como NULL
-	
-#	bne t0, zero, insere_registro_ordem_lista    # Se a lista não estiver vazia desvia
-#	beq t0, zero, insere_primeiro_registro_lista
-#	ret
 	bge a0, zero, insere_registro_continue
 	li a0, -1
 	ret
-
+	
 insere_registro_continue:
 	add t6, zero, a0
 	sw t1, 4(t6)                                # Adiciona valor na memória
@@ -119,21 +98,45 @@ insere_registro_continue:
 	bne t0, zero, insere_registro_ordem_lista   # Se a lista não estiver vazia
 	beq t0, zero, insere_primeiro_registro_lista
 	ret
-
-insere_primeiro_registro_lista:
-	add s0, zero, t6
-	li a0, 0				     
-	ret
-
+	
 insere_registro_ordem_lista:
 	lw t3, 4(s0)                                 # Copia para o registrador t3 o valor do primeiro elemento da lista
 	slt t5, t1, t3                               # Se o valor a ser inserido for menor que o valor do primeiro nodo
-	#addi t3, zero, 1                             # Define t3 como 1 para testar desvio
 	bne t5, zero, insere_inicio_lista            # Quando o valor ser maior que o primeiro valor, sera inserido no inicio da lista   rs1 <> rs2
 	
 	add t4, zero, s0                             # Responsável por passar pelos nodos
 	li t2, 1				     # Indice da inserção
 	j insere_ordem_loop                          # Se não for menor que o primeiro sera inserido no meio ou final da lista 
+	
+insere_primeiro_registro_lista:
+	add s0, zero, t6
+	li a0, 0				     
+	ret
+
+exibe_mensagem_sucesso: 
+	add s2, zero, a0
+    
+	li a7, 4
+	la a0, MsgPosicao1
+	ecall
+	
+	add a0, zero, a1
+	li a7, 1
+	ecall
+	
+	li a7, 4
+	la a0, MsgPosicao2
+	ecall
+	
+	add a0, zero, s2
+	li a7, 1
+	ecall
+	
+	li a7, 4
+	la a0, MsgPosicao3
+	ecall
+	
+	j main
 		
 insere_inicio_lista:
 	sw t6, 0(s0)                                 # Próximo valor do novo nodo sera o inicio da lista
@@ -155,7 +158,7 @@ insere_ordem_loop:				     # Loop que percorre a lista ate encontrar a posicao o
 insere_fim_lista:
 	sw t6, 8(s1)
 	sw s1, 0(t6)
-	add a0, zero, t2			     # Retorna o indice de inserção
+	add a0, s2, t2			             # Retorna o indice de inserção
 	ret
 
 insere_meio_lista:
@@ -163,28 +166,32 @@ insere_meio_lista:
 	sw s1, 0(t6)				     # O novo nodo recebe o nodo anterior
 	sw t4, 8(t6) 				     # O Novo nodo recebe o proximo nodo
 	sw t6, 0(t4)
-	add a0, zero, t2		             # Retorna o indice de inserção
+	add a0, s2, t2		                     # Retorna o indice de inserção
 	ret
 
+##############################################################
+# Final Opção
+# Inserir registro na lista
+##############################################################
 remove_por_indice:
 	la, a0, MsgRemoveIndice	
 	jal ra, exibe_mensagem
-	jal ra, main
+	j main
 
 remove_por_valor:
 	la, a0, MsgRemoveValor
 	jal ra, exibe_mensagem
-	jal ra, main
+	j main
 	
 imprime_lista:
 	la, a0, MsgExibeElementos
 	jal ra, exibe_mensagem
-	jal ra, main
+	j main
 	
 estatistica:
 	la, a0, MsgExibeEstatistica
 	jal ra, exibe_mensagem
-	jal ra, main
+	j main
 	
 finaliza:
 	la a0, MsgExit
