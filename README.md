@@ -21,7 +21,7 @@ inteiro e 4 bytes para armazenar o ponteiro para o próximo elemento. Por exempl
 * ```O valor armazenado no endereço &404 é 220, que corresponde ao endereço do próximo elemento da lista na memória```
 
 <div align="center">
-  <img src="https://github.com/andreidanelli/Project-RISC-V/assets/59027863/e4b1145f-4f50-48c1-b56c-6638aa53b316"/>
+  <img src="https://github.com/andreidanelli/Project-RISC-V/blob/main/Img/project.png"/>
 </div>
 
 # Funcionalidades do Programa
