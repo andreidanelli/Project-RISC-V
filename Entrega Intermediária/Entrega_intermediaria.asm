@@ -16,6 +16,9 @@ MsgEspaco:		.string	 " "
 MsgLista: 		.string  "\nElementos da Lista: "
 MsgExit:		.string  "\nFinalizando programa!\n"
 OpcaoInvalida:          .string  "\nOpcao invalida. Tente novamente.\n"
+MsgMaiorValor:          .string  "Maior valor: "
+MsgMenorValor:          .string  "\nMenor valor: "
+MsgQuantidade:          .string  "\nQuantidade de inserções: "
 								
 			.text
 			add s0, zero, zero  # s0 é o registrador apontador para o início da lista	
@@ -220,6 +223,82 @@ imprime_lista_vazia:
 # Final Opção
 # Imprimir lista
 ##############################################################
+
+##############################################################
+# Inicio Opção
+# Estatísticas da lista
+##############################################################
+estatistica:
+    la a0, MsgExibeEstatistica			#quando a opção 5 é selecionada, exibe a mensagem é a função calc_estatisticas é chamada
+    jal ra, exibe_mensagem
+    add a0, zero, s0
+    jal calc_estatisticas
+    j main
+
+calc_estatisticas:
+    beq s0, zero, estatisticas_lista_vazia	#exibe a mensagem e retorna se a lista estiver vazia
+
+    add t0, zero, s0          			#t0 aponta para o início da lista
+    lw t1, 4(t0)              			#t1 recebe o primeiro valor da lista
+    add t2, zero, t1          			#t2 vai ser o maior valor(inicializa com o primeiro valor)
+    add t3, zero, t1          			#t3 vai ser o menor valor(inicializa com o primeiro valor)
+    li t4, 1                  			#t4 é o contador de elementos (inicializa com 1)
+
+calc_estatisticas_loop:				#loop de cálculo das estatísticas
+    lw t0, 8(t0)              			#t0 recebe o endereço do próximo nodo
+    beq t0, zero, estatisticas_fim_loop 	#se t0 for zero, fim do loop
+    lw t1, 4(t0)              			#t1 recebe o valor do próximo nodo
+
+    blt t2, t1, atualiza_maior			#atualiza o maior valor
+    j verifica_menor
+
+atualiza_maior:
+    add t2, zero, t1          			#t2 recebe t1(novo maior valor)
+    j verifica_menor
+
+verifica_menor:
+    bge t3, t1, conta_elementos
+    add t3, zero, t1          			#t3 recebe t1(novo menor valor)
+
+conta_elementos:
+    addi t4, t4, 1            			#incrementa contador de elementos
+    j calc_estatisticas_loop
+
+estatisticas_fim_loop:
+    la a0, MsgMaiorValor			#exibe o maior valor
+    li a7, 4
+    ecall
+    add a0, zero, t2
+    li a7, 1
+    ecall
+
+    la a0, MsgMenorValor			#exibe o menor valor
+    li a7, 4
+    ecall
+    add a0, zero, t3
+    li a7, 1
+    ecall
+
+    la a0, MsgQuantidade			#exibe a qtd de inserções
+    li a7, 4
+    ecall
+    add a0, zero, t4
+    li a7, 1
+    ecall
+
+    j main
+
+estatisticas_lista_vazia:
+    la a0, MsgListaVazia
+    li a7, 4
+    ecall
+    j main
+
+##############################################################
+# Final Opção
+# Estatísticas da lista
+##############################################################
+
 remove_por_indice:
 	la, a0, MsgRemoveIndice	
 	jal ra, exibe_mensagem
@@ -227,11 +306,6 @@ remove_por_indice:
 
 remove_por_valor:
 	la, a0, MsgRemoveValor
-	jal ra, exibe_mensagem
-	j main
-	
-estatistica:
-	la, a0, MsgExibeEstatistica
 	jal ra, exibe_mensagem
 	j main
 	
