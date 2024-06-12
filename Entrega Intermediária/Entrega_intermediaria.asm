@@ -16,7 +16,7 @@ MsgEspaco:		.string	 " "
 MsgLista: 		.string  "\nElementos da Lista: "
 MsgExit:		.string  "\nFinalizando programa!\n"
 OpcaoInvalida:          .string  "\nOpcao invalida. Tente novamente.\n"
-MsgMaiorValor:          .string  "Maior valor: "
+MsgMaiorValor:          .string  "\nMaior valor: "
 MsgMenorValor:          .string  "\nMenor valor: "
 MsgQuantidade:          .string  "\nQuantidade de inserções: "
 								
@@ -249,32 +249,34 @@ calc_estatisticas_loop:				#loop de cálculo das estatísticas
     beq t0, zero, estatisticas_fim_loop 	#se t0 for zero, fim do loop
     lw t1, 4(t0)              			#t1 recebe o valor do próximo nodo
 
-    blt t2, t1, atualiza_maior			#atualiza o maior valor
-    j verifica_menor
+    blt t1, t2, atualiza_menor			#atualiza o menor valor
+    j verifica_maior
 
-atualiza_maior:
-    add t2, zero, t1          			#t2 recebe t1(novo maior valor)
-    j verifica_menor
+atualiza_menor:
+    add t2, zero, t1          			#t2 recebe t1(novo menor valor)
+    j verifica_maior
 
-verifica_menor:
+verifica_maior:
     bge t3, t1, conta_elementos
-    add t3, zero, t1          			#t3 recebe t1(novo menor valor)
+    add t3, zero, t1          			#t3 recebe t1(novo maior valor)
 
 conta_elementos:
     addi t4, t4, 1            			#incrementa contador de elementos
     j calc_estatisticas_loop
 
 estatisticas_fim_loop:
-    la a0, MsgMaiorValor			#exibe o maior valor
+    la a0, MsgMenorValor			#exibe o menor valor
     li a7, 4
     ecall
+    
     add a0, zero, t2
     li a7, 1
     ecall
 
-    la a0, MsgMenorValor			#exibe o menor valor
+    la a0, MsgMaiorValor			#exibe o maior valor
     li a7, 4
     ecall
+    
     add a0, zero, t3
     li a7, 1
     ecall
