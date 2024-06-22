@@ -5,8 +5,8 @@
 Menu:                   .string  "\n\nMenu:\n1. Insere elemento na lista\n2. Remove elemento da lista indice\n3. Remove elemento da lista valor\n4. Exibe elementos da lista\n5. Exibe estatisticas da lista\n6. Finalizar programa\nEscolha uma opcao: "
 MsgExibeEstatistica:    .string  "\nExibe estatisticas da lista\n"		
 MsgErroAlocacao:        .string  "\nErro ao inserir elemento na lista\n"
-MsgRemoveIndice:	.string  "\nRemove elemento da lista indice\n"        
-MsgRemoveValor:  	.string	 "\nRemove elemento da lista valor\n"
+MsgRemoveIndice:	.string  "\nIndice da lista a ser removido: \n"        
+MsgRemoveValor:  	.string	 "\nValor da lista a ser removido: \n"
 MsgListaVazia:		.string  "\n Lista esta vazia!"
 MsgPosicao1: 		.string  "\nValor "
 MsgPosicao2:		.string	 " inserido na posição "
@@ -19,6 +19,9 @@ OpcaoInvalida:          .string  "\nOpcao invalida. Tente novamente.\n"
 MsgMaiorValor:          .string  "\nMaior valor: "
 MsgMenorValor:          .string  "\nMenor valor: "
 MsgQuantidade:          .string  "\nQuantidade de inserções: "
+MsgRemocaoSucesso:      .string  "\nElemento removido com sucesso.\n"
+MsgRemocaoIndice:       .string  "\nElemento removido do indice.\n"
+MsgRemocaoErro:         .string  "\nErro ao remover elemento.\n"
 								
 			.text
 			add s0, zero, zero  # s0 é o registrador apontador para o início da lista	
@@ -301,15 +304,148 @@ estatisticas_lista_vazia:
 # Estatísticas da lista
 ##############################################################
 
+# Inicio Opção
+# Remove por índice
+##############################################################
+
 remove_por_indice:
-	la, a0, MsgRemoveIndice	
+	la a0, MsgRemoveIndice	
+	jal ra, exibe_mensagem
+
+	li a7, 5				#leitura do índice a ser removido
+	ecall
+	add a1, zero, a0
+	
+	beq s0, zero, remove_indice_lista_vazia #verifica se a lista está vazia
+	
+						#inicializa variáveis
+	add t0, zero, s0      			#t0 aponta para o início da lista
+	li t1, 0              			#t1 é o contador de índice
+	add t2, zero, zero    			#t2 é o ponteiro para o nodo anterior
+	
+remove_indice_loop:
+	beq t1, a1, remove_indice_encontrado   #se t1 == a1, encontrou o índice
+	lw t2, 0(t0)	        		#t2 aponta para o nodo atual
+	lw t0, 8(t0)        			#t0 aponta para o próximo nodo
+	addi t1, t1, 1      			#incrementa o contador de índice
+	bne t0, zero, remove_indice_loop  	#continua se não for o fim da lista
+	
+	la a0, MsgRemocaoErro			#indice não encontrado
 	jal ra, exibe_mensagem
 	j main
+	
+remove_indice_encontrado:
+	lw a1, 4(t0)        			#a1 recebe o valor do nodo a ser removido
+	
+						#remove o nodo da lista
+	beq t2, zero, remove_indice_primeiro  	#se t2 == 0, é o primeiro nodo
+	lw t3, 8(t0)        			#t3 aponta para o próximo nodo
+	sw t3, 8(t2)        			#atualiza o próximo do nodo anterior
+	
+	beq t3, zero, remove_indice_ultimo   	#se t3 == 0, é o último nodo
+	sw t2, 0(t3)        			#atualiza o anterior do próximo nodo
+	la a0, MsgRemocaoSucesso
+	jal ra, exibe_mensagem
+	li a0, 1
+	j main
+	
+remove_indice_primeiro:
+	lw s0, 8(t0)        			#atualiza o início da lista
+	beq s0, zero, remove_indice_ultimo
+	sw zero, 0(s0)      			#atualiza o anterior do novo início da lista
+	la a0, MsgRemocaoSucesso
+	jal ra, exibe_mensagem
+	li a0, 1
+	j main
+	
+remove_indice_ultimo:
+	la a0, MsgRemocaoSucesso
+	jal ra, exibe_mensagem
+	li a0, 1
+	j main
+	
+remove_indice_lista_vazia:
+	la a0, MsgListaVazia
+	jal ra, exibe_mensagem
+	j main
+	
+##############################################################
+# Final Opção
+# Remove por índice
+##############################################################
+
+##############################################################
+# Inicio Opção
+# Remove por valor
+##############################################################
 
 remove_por_valor:
-	la, a0, MsgRemoveValor
+	la a0, MsgRemoveValor
+	jal ra, exibe_mensagem
+
+						#leitura do valor a ser removido
+	li a7, 5
+	ecall
+	add a1, zero, a0
+	
+						#verifica se a lista está vazia
+	beq s0, zero, remove_valor_lista_vazia
+	
+						#inicializa variáveis
+	add t0, zero, s0      			#t0 aponta para o início da lista
+	li t1, 0              			#t1 é o índice do nodo atual
+	add t2, zero, zero    			#t2 é o ponteiro para o nodo anterior
+	
+remove_valor_loop:
+	lw t3, 4(t0)          			#t3 recebe o valor do nodo atual
+	beq t3, a1, remove_valor_encontrado  	#se t3 == a1, encontrou o valor
+	lw t2, 0(t0)				#t2 aponta para o nodo atual
+	lw t0, 8(t0)          			#t0 aponta para o próximo nodo
+	addi t1, t1, 1        			#incrementa o índice
+	bne t0, zero, remove_valor_loop  	#continua se não for o fim da lista
+
+	la a0, MsgRemocaoErro			#valor não encontrado
 	jal ra, exibe_mensagem
 	j main
+	
+remove_valor_encontrado:
+	lw t4, 8(t0)          			#t4 aponta para o próximo nodo
+	
+						#remove o nodo da lista
+	beq t2, zero, remove_valor_primeiro  	#se t2 == 0, é o primeiro nodo
+	sw t4, 8(t2)        			#atualiza o próximo do nodo anterior
+	
+	beq t4, zero, remove_valor_ultimo   	#se t4 == 0, é o último nodo
+	sw t2, 0(t4)        			#atualiza o anterior do próximo nodo
+	la a0, MsgRemocaoSucesso
+	jal ra, exibe_mensagem
+	li a0, 1
+	j main
+	
+remove_valor_primeiro:
+	lw s0, 8(t0)        			#atualiza o início da lista
+	beq s0, zero, remove_valor_ultimo
+	sw zero, 0(s0)      			#atualiza o anterior do novo início da lista
+	la a0, MsgRemocaoSucesso
+	jal ra, exibe_mensagem
+	li a0, 1
+	j main
+	
+remove_valor_ultimo:
+	la a0, MsgRemocaoSucesso
+	jal ra, exibe_mensagem
+	li a0, 1
+	j main
+	
+remove_valor_lista_vazia:
+	la a0, MsgListaVazia
+	jal ra, exibe_mensagem
+	j main
+	
+##############################################################
+# Final Opção
+# Remove por valor
+##############################################################
 	
 finaliza:
 	la a0, MsgExit
